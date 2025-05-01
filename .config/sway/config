@@ -229,3 +229,6 @@ include '$(/usr/libexec/sway/layered-include "/usr/share/sway/config.d/*.conf" "
 exec pgrep -x copyq || copyq
 bindsym $mod+v exec copyq toggle
 bindsym Mod1+Shift+s exec grim -g "$(slurp -d)" - | swappy -f - #grim_slurp_swappy
+
+# Run the increase_number script with Mod+Shift+n
+bindsym $mod+Shift+i exec /home/simon/scripts/increase_number.sh
