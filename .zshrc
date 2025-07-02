@@ -102,4 +102,5 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
 alias gitbare='/usr/bin/git --git-dir=/home/simon/.git_bare_repo/ --work-tree=$HOME'
