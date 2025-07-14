@@ -54,4 +54,16 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
+echo "Flashing first keyboard..."
 flash_pro_micro $1
+
+echo ""
+echo "First keyboard flashed successfully!"
+echo "Now switch to the other keyboard..."
+sleep 3
+echo ""
+echo "Flashing second keyboard..."
+flash_pro_micro $1
+
+echo ""
+echo "Both keyboards flashed successfully!"
