@@ -51,7 +51,7 @@
 // Configuration - modules-center
     
     "modules-center": [
-        "network"
+        "clock"
     ],
 
     "network": {
@@ -75,7 +75,7 @@
         "backlight",
         "pulseaudio",
         "battery",
-        "clock",
+        "network",
         "tray",
         "custom/power"
     ],
@@ -154,8 +154,8 @@
     },
 
     "clock": {
-        "format": "󰅐 {:%H:%M}",
-        "format-alt": "󰅐 {:%OI:%M %p}",
+        "format": " {:%u-%d %H:%M:%S}",
+        "interval": 1,
         "tooltip-format": " {:%A %m/%d}\n\n<tt><small>{calendar}</small></tt>",
         "calendar": {
             "on-scroll": 1,
