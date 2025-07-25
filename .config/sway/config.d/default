@@ -215,8 +215,8 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
         $mod+Ctrl+Mod1+space exec playerctl play-pause
 
         # Backlight
-        XF86MonBrightnessUp exec brightnessctl -c backlight set +5%
-        XF86MonBrightnessDown exec brightnessctl -c backlight set 5%-
+        XF86MonBrightnessUp exec brightnessctl -c backlight set +8%
+        XF86MonBrightnessDown exec brightnessctl -c backlight set 8%-
     }
 
 #
