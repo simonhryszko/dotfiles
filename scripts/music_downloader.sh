@@ -39,14 +39,14 @@ process_dir() {
     [[ -d "$subdir" ]] && process_dir "$subdir"
   done
 
-  # Process _ file if exists
-  if [[ -f "$dir/_" ]]; then
+  # Process .urls file if exists
+  if [[ -f "$dir/.urls" ]]; then
     echo "Processing: $dir"
     while read -r url; do
       [[ -n "$url" && ! "$url" =~ "^#" ]] && download "$url" "$dir"
-    done <"$dir/_"
+    done <"$dir/.urls"
   else
-    echo "In $dir directory is not file '_' - if you create it, it will be processed"
+    echo "In $dir directory is not file '.urls' - if you create it, it will be processed"
   fi
 }
 
