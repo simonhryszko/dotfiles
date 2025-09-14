@@ -38,8 +38,8 @@ fi
 # Switch to the workspace
 if swaymsg workspace "$WORKSTATION_ID" >/dev/null 2>&1; then
   # Append current workspace to history (before the switch)
-  append_to_history "$CURRENT_WS"
   logger -t "sway-workspace-switcher" "Successfully switched to workspace $WORKSTATION_ID"
+  append_to_history "$WORKSTATION_ID"
 else
   logger -t "sway-workspace-switcher" "Error: Failed to switch to workspace $WORKSTATION_ID"
   exit 1
