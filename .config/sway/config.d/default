@@ -88,16 +88,16 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 
     bindcode {
         # Switch to workspace
-        $mod+10 workspace number 1
-        $mod+11 workspace number 2
-        $mod+12 workspace number 3
-        $mod+13 workspace number 4
-        $mod+14 workspace number 5
-        $mod+15 workspace number 6
-        $mod+16 workspace number 7
-        $mod+17 workspace number 8
-        $mod+18 workspace number 9
-        $mod+19 workspace number 10
+        $mod+10 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 1
+        $mod+11 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 2
+        $mod+12 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 3
+        $mod+13 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 4
+        $mod+14 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 5
+        $mod+15 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 6
+        $mod+16 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 7
+        $mod+17 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 8
+        $mod+18 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 9
+        $mod+19 exec ~/.config/sway/scripts/sway-workspace-switcher.sh 10
 
         # Move focused container to workspace
         $mod+Shift+10 move container to workspace number 1
