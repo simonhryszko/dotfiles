@@ -189,7 +189,7 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
         XF86AudioMute exec pamixer --toggle-mute
 
         # Player
-        XF86AudioPlay exec playerctl play-pause
+        $mod+Ctrl+Alt+space exec playerctl play-pause
         XF86AudioNext exec playerctl next
         XF86AudioPrev exec playerctl previous
 
@@ -209,6 +209,7 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 
     # Launch the clipboard manager
     bindsym $mod+Ctrl+v exec cliphist list | fuzzel -d -w 90 -l 30 -p "Select an entry to copy it to your clipboard buffer:"| cliphist decode | wl-copy
+    bindsym print+v exec cliphist list | fuzzel -d -w 90 -l 30 -p "Select an entry to copy it to your clipboard buffer:"| cliphist decode | wl-copy
     # Delete an entry from the clipboard manager
     bindsym $mod+Ctrl+x exec cliphist list | fuzzel -d -w 90 -l 30 -t cc9393ff -S cc9393ff -p "Select an entry to delete it from cliphist:"| cliphist delete
     # Note: you can clear all cliphist entries by running `cliphist wipe`
@@ -217,9 +218,10 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 # Screenshots
 #
     # Snip a selection and pipe to swappy
-    bindsym print exec grim -g "$(slurp)" - | swappy -f -
+    bindsym Alt+Shift+s exec grim -g "$(slurp)" - | swappy -f -
     # Screenshot a window and pipe to swappy
-    bindsym Ctrl+Print exec ~/.config/sway/scripts/screenshot_window.sh
+    # bindsym Ctrl+Print exec ~/.config/sway/scripts/screenshot_window.sh
     # Screenshot the current display and pipe to swappy
-    bindsym Shift+Print exec ~/.config/sway/scripts/screenshot_display.sh
+    # bindsym Shift+Print exec ~/.config/sway/scripts/screenshot_display.sh
+
 
