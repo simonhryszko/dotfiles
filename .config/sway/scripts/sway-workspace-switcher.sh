@@ -16,8 +16,7 @@ append_to_history() {
 
 # Check if workspace ID was provided
 if [[ -z "$WORKSTATION_ID" ]]; then
-  echo "Error: No workspace ID provided" >&2
-  echo "Usage: $0 <WORKSPACE_ID>" >&2
+  logger -t "sway-workspace-switcher" "Error: No workspace ID provided"
   exit 1
 fi
 
@@ -27,21 +26,21 @@ if [[ "$WORKSTATION_ID" == "$CURRENT_WS" ]]; then
   PREVIOUS_WS=$(tail -2 "$SWAY_WORKSTATION_HISTORY" 2>/dev/null | head -1)
   if [[ -n "$PREVIOUS_WS" && "$PREVIOUS_WS" != "$CURRENT_WS" ]]; then
     WORKSTATION_ID="$PREVIOUS_WS"
-    echo "Switching back to workspace $WORKSTATION_ID"
+    logger -t "sway-workspace-switcher" "Switching back to workspace $WORKSTATION_ID"
   else
-    echo "No previous workspace found or same as current" >&2
+    logger -t "sway-workspace-switcher" "No previous workspace found or same as current"
     exit 1
   fi
 else
-  echo "Switching to workspace $WORKSTATION_ID"
+  logger -t "sway-workspace-switcher" "Switching to workspace $WORKSTATION_ID"
 fi
 
 # Switch to the workspace
 if swaymsg workspace "$WORKSTATION_ID" >/dev/null 2>&1; then
   # Append current workspace to history (before the switch)
   append_to_history "$CURRENT_WS"
-  echo "Successfully switched to workspace $WORKSTATION_ID"
+  logger -t "sway-workspace-switcher" "Successfully switched to workspace $WORKSTATION_ID"
 else
-  echo "Error: Failed to switch to workspace $WORKSTATION_ID" >&2
+  logger -t "sway-workspace-switcher" "Error: Failed to switch to workspace $WORKSTATION_ID"
   exit 1
 fi
