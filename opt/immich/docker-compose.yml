@@ -13,6 +13,8 @@ services:
   immich-server:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    env_file:
+      - .env
     extends:
       file: hwaccel.transcoding.yml
       service: ${TRANSCODING_BACKEND:-cpu} # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
@@ -34,6 +36,8 @@ services:
     # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
     # Example tag: ${IMMICH_VERSION:-release}-cuda
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
+    env_file:
+      - .env
     extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
       file: hwaccel.ml.yml
       service: cuda # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
@@ -65,6 +69,17 @@ services:
       - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
     shm_size: 128mb
     restart: unless-stopped
+
+  # pgadmin:
+  #   container_name: pgadmin
+  #   image: dpage/pgadmin4:latest
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: user@domain.com   # replace with your email
+  #     PGADMIN_DEFAULT_PASSWORD: SuperSecret    # replace with your password
+  #   ports:
+  #     - 80:80                               # expose pgAdmin web UI on host port 5050
+  #   restart: unless-stopped
+  #   network_mode: "host"                      # optional, if you want to share host network with other containers (or put under same bridge network)
 
 volumes:
   model-cache:
