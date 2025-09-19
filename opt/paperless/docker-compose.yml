@@ -22,8 +22,17 @@
 # For more extensive installation and update instructions, refer to the
 # documentation.
 services:
+  redis-init:
+    image: busybox
+    command: sh -c "mkdir -p /data && chown ${USERMAP_UID:-1000}:${USERMAP_GID:-1000} /data"
+    volumes:
+      - ./redisdata:/data
+    user: "0:0"
+    restart: "no"
+
   broker:
     image: docker.io/library/redis:8
+    user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
     restart: unless-stopped
     volumes:
       - ./redisdata:/data
@@ -40,4 +49,6 @@ services:
       - ./media:/usr/src/paperless/media
       - ./export:/usr/src/paperless/export
       - ./consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: ${REDIS_URI}
 
