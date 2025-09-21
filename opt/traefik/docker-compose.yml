@@ -1,0 +1,33 @@
+services:
+  traefik:
+    image: traefik:latest
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - traefik
+
+  traefik-monitor:
+    image: busybox:latest
+    command: sh /script/monitor.sh
+    volumes:
+      - ./monitor.sh:/script/monitor.sh:ro
+      - /etc/hosts:/etc/hosts
+    environment:
+      - TRAEFIK_API_URL=http://traefik:8080
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    name: traefik

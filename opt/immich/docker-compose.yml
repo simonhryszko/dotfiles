@@ -24,12 +24,21 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - '2283:2283'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immich.rule=Host(`immich.localhost`)"
+      - "traefik.http.routers.immich.entrypoints=web"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"
+      - "traefik.docker.network=traefik"
     depends_on:
       - redis
       - database
     restart: unless-stopped
     healthcheck:
       disable: false
+    networks:
+      - traefik
+      - default
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -83,3 +92,8 @@ services:
 
 volumes:
   model-cache:
+
+networks:
+  traefik:
+    name: traefik
+    external: true

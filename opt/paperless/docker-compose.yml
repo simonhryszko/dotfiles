@@ -44,6 +44,12 @@ services:
       - broker
     ports:
       - "8000:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.rule=Host(`paperless.localhost`)"
+      - "traefik.http.routers.paperless.entrypoints=web"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
     volumes:
       - ./data:/usr/src/paperless/data
       - ./media:/usr/src/paperless/media
@@ -51,4 +57,11 @@ services:
       - ./consume:/usr/src/paperless/consume
     environment:
       PAPERLESS_REDIS: ${REDIS_URI}
+    networks:
+      - traefik
+      - default
 
+networks:
+  traefik:
+    name: traefik
+    external: true
