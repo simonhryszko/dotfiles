@@ -1,6 +1,7 @@
 services:
   traefik:
     image: traefik:latest
+    restart: unless-stopped
     command:
       - "--api.dashboard=false"
       - "--providers.docker=true"
