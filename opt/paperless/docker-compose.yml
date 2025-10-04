@@ -33,13 +33,13 @@ services:
   broker:
     image: docker.io/library/redis:8
     user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
-    restart: unless-stopped
+    # restart: unless-stopped
     volumes:
       - ./redisdata:/data
 
   webserver:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
-    restart: unless-stopped
+    # restart: unless-stopped
     depends_on:
       - broker
     ports:
