@@ -7,7 +7,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--api.insecure=true"
+      # - "--api.insecure=true"
       - "--log.level=DEBUG"
       - "--accesslog=true"
     ports:
