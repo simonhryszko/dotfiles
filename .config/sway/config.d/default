@@ -82,6 +82,13 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 #
 # Workspaces:
 #
+
+
+bindsym $mod+Ctrl+Left workspace prev
+bindsym $mod+Ctrl+h workspace prev
+bindsym $mod+Ctrl+Right workspace next
+bindsym $mod+Ctrl+l workspace next
+
     # Workspace bindings are using bindcode instead of bindsym for better Azerty compatibility.
     # https://github.com/EndeavourOS-Community-Editions/sway/pull/81
     # Use wev to find keycodes for setting up other bindings this way.
@@ -158,15 +165,15 @@ set $powermenu ~/.config/sway/scripts/power_menu.sh
 #
     bindsym {
         # Resize with arrow keys
-        $mod+ctrl+Right resize shrink width 10 px
+        # $mod+ctrl+Right resize shrink width 10 px
         $mod+ctrl+Up resize grow height 10 px
         $mod+ctrl+Down resize shrink height 10 px
-        $mod+ctrl+Left resize grow width 10 px
+        # $mod+ctrl+Left resize grow width 10 px
         # Resize with Vim keys
-        $mod+ctrl+$right resize shrink width 10 px
+        # $mod+ctrl+$right resize shrink width 10 px
         $mod+ctrl+$up resize grow height 10 px
         $mod+ctrl+$down resize shrink height 10 px
-        $mod+ctrl+$left resize grow width 10 px
+        # $mod+ctrl+$left resize grow width 10 px
     }
 
     # Resize floating windows with mouse scroll:
