@@ -1,0 +1,122 @@
+services:
+  db:
+    image: postgres:16
+    shm_size: 1g
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: windmill
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  windmill_server:
+    image: ${WM_IMAGE}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.windmill.rule=Host(`windmill.localhost`)"
+      - "traefik.http.routers.windmill.entrypoints=web"
+      - "traefik.http.services.windmill.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=server
+    networks:
+      - traefik
+      - default
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - worker-logs:/tmp/windmill/logs
+
+  windmill_worker:
+    image: ${WM_IMAGE}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=worker
+      - WORKER_GROUP=default
+      # - KEEP_JOB_DIR=true
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - worker-dependency-cache:/tmp/windmill/cache
+      - worker-logs:/tmp/windmill/logs
+      # - job-dir:/tmp/windmill
+
+  windmill_worker_native:
+    image: ${WM_IMAGE}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=worker
+      - WORKER_GROUP=native
+      - NUM_WORKERS=8
+      - SLEEP_QUEUE=200
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - worker-logs:/tmp/windmill/logs
+
+  windmill_worker_reports:
+    image: ${WM_IMAGE}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=worker
+      - WORKER_GROUP=reports
+      # - KEEP_JOB_DIR=true
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - worker-dependency-cache:/tmp/windmill/cache
+      - worker-dependency-cache:/tmp/windmill/cache
+      - worker-logs:/tmp/windmill/logs
+      # - job-dir:/tmp/windmill
+
+  lsp:
+    image: ghcr.io/windmill-labs/windmill-lsp:latest
+    restart: unless-stopped
+    volumes:
+      - lsp-cache:/pyls/.cache
+
+networks:
+  traefik:
+    name: traefik
+    external: true
+
+volumes:
+  db-data: null
+  worker-dependency-cache: null
+  worker-logs: null
+  windmill-index: null
+  lsp-cache: null
