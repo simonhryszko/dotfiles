@@ -14,7 +14,7 @@ services:
       timeout: 5s
       retries: 5
 
-  windmill_server:
+  server:
     image: ${WM_IMAGE}
     restart: unless-stopped
     labels:
@@ -35,7 +35,7 @@ services:
     volumes:
       - worker-logs:/tmp/windmill/logs
 
-  windmill_worker:
+  worker_master:
     image: ${WM_IMAGE}
     deploy:
       replicas: 1
@@ -48,6 +48,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - MODE=worker
       - WORKER_GROUP=default
+      - NUM_WORKERS=2
       # - KEEP_JOB_DIR=true
     depends_on:
       db:
@@ -58,7 +59,32 @@ services:
       - worker-logs:/tmp/windmill/logs
       # - job-dir:/tmp/windmill
 
-  windmill_worker_native:
+  worker_extra:
+    image: ${WM_IMAGE}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=worker
+      - WORKER_TAGS=extras
+      - INIT_SCRIPT="/init.sh"
+      - NUM_WORKERS=2
+      # - KEEP_JOB_DIR=true
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - worker-dependency-cache:/tmp/windmill/cache
+      - worker-logs:/tmp/windmill/logs
+      - ./init.sh:/init.sh:ro
+
+  worker_native:
     image: ${WM_IMAGE}
     deploy:
       replicas: 1
@@ -71,7 +97,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - MODE=worker
       - WORKER_GROUP=native
-      - NUM_WORKERS=8
+      - NUM_WORKERS=1
       - SLEEP_QUEUE=200
     depends_on:
       db:
@@ -79,35 +105,35 @@ services:
     volumes:
       - worker-logs:/tmp/windmill/logs
 
-  windmill_worker_reports:
-    image: ${WM_IMAGE}
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: "1"
-          memory: 2048M
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - MODE=worker
-      - WORKER_GROUP=reports
-      # - KEEP_JOB_DIR=true
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      # - worker-dependency-cache:/tmp/windmill/cache
-      - worker-dependency-cache:/tmp/windmill/cache
-      - worker-logs:/tmp/windmill/logs
-      # - job-dir:/tmp/windmill
+  # windmill_worker_reports:
+  #   image: ${WM_IMAGE}
+  #   deploy:
+  #     replicas: 1
+  #     resources:
+  #       limits:
+  #         cpus: "1"
+  #         memory: 2048M
+  #   restart: unless-stopped
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - MODE=worker
+  #     - WORKER_GROUP=reports
+  #     - INIT_SCRIPT="/init.sh"
+  #     # - KEEP_JOB_DIR=true
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # - worker-dependency-cache:/tmp/windmill/cache
+  #     - worker-dependency-cache:/tmp/windmill/cache
+  #     - worker-logs:/tmp/windmill/logs
+  #     # - job-dir:/tmp/windmill
+  #     - ./init.sh:/init.sh:ro
 
   lsp:
     image: ghcr.io/windmill-labs/windmill-lsp:latest
     restart: unless-stopped
-    volumes:
-      - lsp-cache:/pyls/.cache
 
 networks:
   traefik:
@@ -118,5 +144,3 @@ volumes:
   db-data: null
   worker-dependency-cache: null
   worker-logs: null
-  windmill-index: null
-  lsp-cache: null
