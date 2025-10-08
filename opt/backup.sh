@@ -33,6 +33,44 @@ backup_volume() {
   echo
 }
 
+backup_stack() {
+  dir=$1
+  echo "Starting backup for stack: $dir"
+  cd "$dir"
+
+  if [ ! -f .volumes ]; then
+    if [ -n "$(docker compose volumes -q)" ]; then
+      touch .volumes
+    else
+      echo "No volumes found, skipping creation of .volumes file"
+      echo
+      cd -
+      return 0
+    fi
+  fi
+
+  # Add volumes that are not yet in .volumes file
+  for volume in $(docker compose volumes -q); do
+    if ! grep -q $volume .volumes; then
+      echo "Adding volume $volume to .volumes"
+      echo "#$volume" >>.volumes
+    fi
+  done
+
+  # Remove entries from .volumes that are no longer in docker compose file
+  for line in $(cat .volumes); do
+    if ! docker compose volumes | grep -q "${line#\#}"; then
+      echo "Removing $line from .volumes (no longer in compose file)"
+      sed -i "\|^${line}|d" .volumes
+    fi
+  done
+
+  echo "Finished backup for stack: $dir"
+  echo
+
+  cd -
+}
+
 fix_permissions() {
   echo "Fixing backup directory permissions..."
   docker run --rm \
@@ -42,10 +80,11 @@ fix_permissions() {
 
 # Main part
 echo "Welcome to the backup script!"
-volumes=$(get_volumes_from_file)
 
-for volume in $volumes; do
-  backup_volume "$volume"
+for dir in "$SCRIPT_DIR"/*/; do
+  if [ -r "$dir/docker-compose.yml" ]; then
+    backup_stack "$dir"
+  fi
 done
 
 fix_permissions
