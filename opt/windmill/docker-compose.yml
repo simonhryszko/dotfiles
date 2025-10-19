@@ -29,6 +29,7 @@ services:
     networks:
       - traefik
       - default
+      - ollama_ollama-net
     depends_on:
       db:
         condition: service_healthy
@@ -36,7 +37,13 @@ services:
       - worker-logs:/tmp/windmill/logs
 
   worker_master:
-    image: ${WM_IMAGE}
+    build:
+      context: .
+      dockerfile: dockerFile_worker
+      args:
+        WM_IMAGE: ${WM_IMAGE}
+    # image: ${WM_IMAGE}
+    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
     deploy:
       replicas: 1
       resources:
@@ -48,33 +55,13 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - MODE=worker
       - WORKER_GROUP=default
-      - NUM_WORKERS=2
+      - WORKER_TAGS=master
+      - NUM_WORKERS=1
+      # - INIT_SCRIPT="/init.sh"
       # - KEEP_JOB_DIR=true
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - worker-dependency-cache:/tmp/windmill/cache
-      - worker-logs:/tmp/windmill/logs
-      # - job-dir:/tmp/windmill
-
-  worker_extra:
-    image: ${WM_IMAGE}
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: "1"
-          memory: 2048M
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - MODE=worker
-      - WORKER_TAGS=extras
-      - INIT_SCRIPT="/init.sh"
-      - NUM_WORKERS=2
-      # - KEEP_JOB_DIR=true
+    networks:
+      - default
+      - ollama_ollama-net
     depends_on:
       db:
         condition: service_healthy
@@ -83,9 +70,40 @@ services:
       - worker-dependency-cache:/tmp/windmill/cache
       - worker-logs:/tmp/windmill/logs
       - ./init.sh:/init.sh:ro
+      - ./shared:/shared
+      # - job-dir:/tmp/windmill
+
+  # worker_extra:
+  #   image: ${WM_IMAGE}
+  #   deploy:
+  #     replicas: 1
+  #     resources:
+  #       limits:
+  #         cpus: "1"
+  #         memory: 2048M
+  #   restart: unless-stopped
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - MODE=worker
+  #     - WORKER_TAGS=extras
+  #     - INIT_SCRIPT="/init.sh"
+  #     - NUM_WORKERS=2
+  #     # - KEEP_JOB_DIR=true
+  #   networks:
+  #     - default
+  #     - ollama_ollama-net
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - worker-dependency-cache:/tmp/windmill/cache
+  #     - worker-logs:/tmp/windmill/logs
+  #     - ./init.sh:/init.sh:ro
 
   worker_native:
     image: ${WM_IMAGE}
+    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
     deploy:
       replicas: 1
       resources:
@@ -99,48 +117,94 @@ services:
       - WORKER_GROUP=native
       - NUM_WORKERS=1
       - SLEEP_QUEUE=200
+      - INIT_SCRIPT="/init.sh"
+    networks:
+      - default
+      - ollama_ollama-net
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - worker-logs:/tmp/windmill/logs
+      - ./init.sh:/init.sh:ro
+      - ./shared:/shared
 
-  # windmill_worker_reports:
-  #   image: ${WM_IMAGE}
-  #   deploy:
-  #     replicas: 1
-  #     resources:
-  #       limits:
-  #         cpus: "1"
-  #         memory: 2048M
-  #   restart: unless-stopped
-  #   environment:
-  #     - DATABASE_URL=${DATABASE_URL}
-  #     - MODE=worker
-  #     - WORKER_GROUP=reports
-  #     - INIT_SCRIPT="/init.sh"
-  #     # - KEEP_JOB_DIR=true
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     # - worker-dependency-cache:/tmp/windmill/cache
-  #     - worker-dependency-cache:/tmp/windmill/cache
-  #     - worker-logs:/tmp/windmill/logs
-  #     # - job-dir:/tmp/windmill
-  #     - ./init.sh:/init.sh:ro
+  windmill_worker_reports:
+    image: ${WM_IMAGE}
+    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2048M
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - MODE=worker
+      - WORKER_GROUP=reports
+      - INIT_SCRIPT="/init.sh"
+      # - KEEP_JOB_DIR=true
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - worker-dependency-cache:/tmp/windmill/cache
+      - worker-dependency-cache:/tmp/windmill/cache
+      - worker-logs:/tmp/windmill/logs
+      # - job-dir:/tmp/windmill
+      - ./init.sh:/init.sh:ro
+      - ./shared:/shared
 
   lsp:
     image: ghcr.io/windmill-labs/windmill-lsp:latest
     restart: unless-stopped
 
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: simonhryszko@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: ${PG_PASSWORD}
+      PGADMIN_LISTEN_PORT: 5638
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost`)"
+      - "traefik.http.routers.pgadmin.entrypoints=web"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=5638"
+      - "traefik.docker.network=traefik"
+    networks:
+      - traefik
+      - default
+
+  migrate:
+    container_name: migrate
+    image: migrate/migrate:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    command: -path /migrations -database "postgres://${POSTGRES_USER:-postgres}:${PG_PASSWORD}@db/${POSTGRES_DB:-myapp}?sslmode=disable" up
+    # command: -path /migrations -database "postgres://postgres:${PG_PASSWORD}@db/windmill?sslmode=disable" up
+    volumes:
+      - ./migrations:/migrations
+    networks:
+      - default
+    environment:
+      - MIGRATE_LOGLEVEL=info
+
+
 networks:
   traefik:
     name: traefik
+    external: true
+  ollama_ollama-net:
     external: true
 
 volumes:
   db-data: null
   worker-dependency-cache: null
   worker-logs: null
+  pgadmin-data: null
