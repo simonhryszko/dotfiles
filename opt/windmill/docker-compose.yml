@@ -180,20 +180,25 @@ services:
       - traefik
       - default
 
-  migrate:
-    container_name: migrate
-    image: migrate/migrate:latest
+  flyway:
+    container_name: flyway
+    image: flyway/flyway
     depends_on:
       db:
         condition: service_healthy
-    command: -path /migrations -database "postgres://${POSTGRES_USER:-postgres}:${PG_PASSWORD}@db/${POSTGRES_DB:-myapp}?sslmode=disable" up
-    # command: -path /migrations -database "postgres://postgres:${PG_PASSWORD}@db/windmill?sslmode=disable" up
+    command: migrate
     volumes:
-      - ./migrations:/migrations
+      - ./migrations:/flyway/sql
     networks:
       - default
     environment:
-      - MIGRATE_LOGLEVEL=info
+      - FLYWAY_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - FLYWAY_USER=${PG_USERNAME}
+      - FLYWAY_PASSWORD=${PG_PASSWORD}
+      - FLYWAY_DEFAULT_SCHEMA=data
+      - FLYWAY_PLACEHOLDER_REPLACEMENT=true
+      - FLYWAY_PLACEHOLDERS_DATA_USER=${DATA_USER}
+      - FLYWAY_PLACEHOLDERS_DATA_PASSWORD=${DATA_PASSWORD}
 
 
 networks:
