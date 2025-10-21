@@ -261,7 +261,6 @@ return {
             vim.g.matrix_borders = true
             vim.g.matrix_cursorline_transparent = true
             vim.g.matrix_enable_sidebar_background = true
-            vim.cmd("colorscheme matrix")
         end,
     },
 }
