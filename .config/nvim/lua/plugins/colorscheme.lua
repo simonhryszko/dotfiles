@@ -257,6 +257,10 @@ return {
     {
         "iruzo/matrix-nvim",
         config = function()
+            vim.g.matrix_disable_background = true
+            vim.g.matrix_borders = true
+            vim.g.matrix_cursorline_transparent = true
+            vim.g.matrix_enable_sidebar_background = true
             vim.cmd("colorscheme matrix")
         end,
     },
