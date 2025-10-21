@@ -79,6 +79,6 @@ shell-integration-features = no-cursor
 copy-on-select = clipboard
 
 # Simple Keybinds
-keybind = ctrl+r=reload_config 
+# keybind = ctrl+r=reload_config 
 keybind = ctrl+i=inspector:toggle
 # keybind = ctrl+b>,=toggle_quick_terminal
