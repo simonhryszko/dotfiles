@@ -4,6 +4,14 @@ import time
 from playwright.sync_api import Playwright, sync_playwright, expect
 from urllib.parse import urlparse, parse_qs
 
+def extract_room_id(url):
+    """Extract room ID from Airbnb URL"""
+    # Match pattern after /rooms/ and before ?
+    match = re.search(r'/rooms/(\d+)', url)
+    if match:
+        return match.group(1)
+    return None
+
 def extract_check_in_out_dates(url):
     """Extract check-in and check-out dates from URL"""
     parsed = urlparse(url)
@@ -16,6 +24,25 @@ def clean_url(url):
     """Remove extra parameters from URL to get clean Airbnb listing URL"""
     parsed = urlparse(url)
     base_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    return base_url
+
+def reconstruct_url(room_id, check_in=None, check_out=None):
+    """Reconstruct Airbnb URL with room ID and optional dates"""
+    base_url = f"https://www.airbnb.com/rooms/{room_id}"
+    params = []
+
+    if check_in:
+        params.append(f"check_in={check_in}")
+    if check_out:
+        params.append(f"check_out={check_out}")
+
+    # Add basic parameters
+    params.extend(["adults=1", "search_mode=regular_search", "children=0", "infants=0", "pets=0"])
+
+    if params:
+        query_string = "&".join(params)
+        return f"{base_url}?{query_string}"
+
     return base_url
 
 def format_date_for_selection(date_str):
@@ -152,6 +179,8 @@ def scrape_airbnb_price(url, check_in_date, check_out_date):
 def main():
     """Main function to read CSV and process URLs"""
     csv_file = 'airbnb.csv'
+    check_in = '2025-11-12'  # Hardcoded check-in date
+    check_out = '2025-11-17'  # Hardcoded check-out date
 
     try:
         with open(csv_file, 'r', encoding='utf-8') as file:
@@ -159,28 +188,42 @@ def main():
             headers = next(reader)  # Skip header row
 
             print("Starting Airbnb price scraping...")
+            print(f"Using hardcoded dates: {check_in} to {check_out}")
             print("=" * 50)
 
             for row_num, row in enumerate(reader, start=2):  # Start at 2 since row 1 is header
                 if len(row) > 0:  # Make sure row has data
-                    url = row[0]  # URL is in the first column
+                    original_url = row[0]  # URL is in the first column
 
-                    if not url or not url.startswith('https://www.airbnb.com'):
-                        print(f"Skipping invalid URL in row {row_num}: {url}")
+                    if not original_url or not original_url.startswith('https://www.airbnb.com'):
+                        print(f"Skipping invalid URL in row {row_num}: {original_url}")
                         continue
 
                     print(f"\nProcessing row {row_num}:")
-                    print(f"URL: {url}")
+                    print(f"Original URL: {original_url}")
 
-                    # Extract dates from URL
-                    check_in, check_out = extract_check_in_out_dates(url)
-                    print(f"Check-in: {check_in}, Check-out: {check_out}")
+                    # Extract room ID from URL
+                    room_id = extract_room_id(original_url)
+                    if not room_id:
+                        print(f"Could not extract room ID from URL: {original_url}")
+                        continue
 
-                    # Clean URL for navigation
-                    clean_url_to_use = clean_url(url)
+                    print(f"Room ID: {room_id}")
+                    print(f"Using hardcoded dates: {check_in}, {check_out}")
+
+                    # Create clean URL for navigation
+                    clean_url_to_use = clean_url(original_url)
+                    print(f"Clean URL: {clean_url_to_use}")
+
+                    # Reconstruct URL with room ID and hardcoded dates
+                    reconstructed_url = reconstruct_url(room_id, check_in, check_out)
+                    print(f"Reconstructed URL: {reconstructed_url}")
+
+                    # Use reconstructed URL for scraping
+                    url_to_scrape = reconstructed_url
 
                     # Scrape price
-                    price = scrape_airbnb_price(clean_url_to_use, check_in, check_out)
+                    price = scrape_airbnb_price(url_to_scrape, check_in, check_out)
 
                     print(f"Final price: {price}")
                     print("-" * 30)
