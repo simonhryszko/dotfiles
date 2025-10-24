@@ -1,9 +1,0 @@
-FROM ghcr.io/windmill-labs/windmill:main
-
-RUN apt update
-RUN apt install ffmpeg -y
-
-RUN apt install python3-pip -y
-RUN pip install -U openai-whisper --break-system-packages
-
-CMD ["windmill"]

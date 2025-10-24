@@ -39,11 +39,8 @@ services:
   worker_master:
     build:
       context: .
-      dockerfile: dockerFile_worker
       args:
         WM_IMAGE: ${WM_IMAGE}
-    # image: ${WM_IMAGE}
-    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
     deploy:
       replicas: 1
       resources:
@@ -54,11 +51,8 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - MODE=worker
-      - WORKER_GROUP=default
-      - WORKER_TAGS=master
-      - NUM_WORKERS=1
-      # - INIT_SCRIPT="/init.sh"
-      # - KEEP_JOB_DIR=true
+      - WORKER_GROUP=default,native,reports
+      - NUM_WORKERS=3
     networks:
       - default
       - ollama_ollama-net
@@ -69,96 +63,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - worker-dependency-cache:/tmp/windmill/cache
       - worker-logs:/tmp/windmill/logs
-      - ./init.sh:/init.sh:ro
       - ./shared:/shared
-      - $HOME/Documents/obsidian:/obsidian:ro
-      # - job-dir:/tmp/windmill
-
-  # worker_extra:
-  #   image: ${WM_IMAGE}
-  #   deploy:
-  #     replicas: 1
-  #     resources:
-  #       limits:
-  #         cpus: "1"
-  #         memory: 2048M
-  #   restart: unless-stopped
-  #   environment:
-  #     - DATABASE_URL=${DATABASE_URL}
-  #     - MODE=worker
-  #     - WORKER_TAGS=extras
-  #     - INIT_SCRIPT="/init.sh"
-  #     - NUM_WORKERS=2
-  #     # - KEEP_JOB_DIR=true
-  #   networks:
-  #     - default
-  #     - ollama_ollama-net
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - worker-dependency-cache:/tmp/windmill/cache
-  #     - worker-logs:/tmp/windmill/logs
-  #     - ./init.sh:/init.sh:ro
-
-  worker_native:
-    image: ${WM_IMAGE}
-    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: "1"
-          memory: 2048M
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - MODE=worker
-      - WORKER_GROUP=native
-      - NUM_WORKERS=1
-      - SLEEP_QUEUE=200
-      - INIT_SCRIPT="/init.sh"
-    networks:
-      - default
-      - ollama_ollama-net
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - worker-logs:/tmp/windmill/logs
-      - ./init.sh:/init.sh:ro
-      - ./shared:/shared
-      - $HOME/Documents/obsidian:/obsidian:ro
-
-  windmill_worker_reports:
-    image: ${WM_IMAGE}
-    # user: "${USERMAP_UID:-1000}:${USERMAP_GID:-1000}"
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: "1"
-          memory: 2048M
-    restart: unless-stopped
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - MODE=worker
-      - WORKER_GROUP=reports
-      - INIT_SCRIPT="/init.sh"
-      # - KEEP_JOB_DIR=true
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      # - worker-dependency-cache:/tmp/windmill/cache
-      - worker-dependency-cache:/tmp/windmill/cache
-      - worker-logs:/tmp/windmill/logs
-      # - job-dir:/tmp/windmill
-      - ./init.sh:/init.sh:ro
-      - ./shared:/shared
-      - $HOME/Documents/obsidian:/obsidian:ro
+      - $HOME/Documents/obsidian:/obsidian
 
   lsp:
     image: ghcr.io/windmill-labs/windmill-lsp:latest
