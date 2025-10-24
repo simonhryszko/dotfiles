@@ -1,6 +1,6 @@
 -- Disable netrw banner
 vim.cmd("let g:netrw_banner = 0")
-vim.opt.guicursor="n-v-c:block,i-ci-ve-r-cr-o:blinkoff500-blinkon50"
+vim.opt.guicursor="n-c:block,i-ci-ve-r-cr-o:blinkoff500-blinkon50"
 
 -- line numbers
 vim.opt.nu = true
