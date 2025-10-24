@@ -20,6 +20,9 @@ if [[ -z "$WORKSTATION_ID" ]]; then
   exit 1
 fi
 
+# Ensure current workspace is in history before switching
+append_to_history "$CURRENT_WS"
+
 # If requested workspace is the current one, go to previous workspace
 if [[ "$WORKSTATION_ID" == "$CURRENT_WS" ]]; then
   # Get second to last workspace from history (previous workspace)
